@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+</head>
+<body>
+    <div style="margin-top: 50px" class="ui container">
+
+    <h1 class="ui center aligned header">URL Shortener</h1>
+
+    <form class="ui form" action="/url" method="post">
+        <div class="field">
+            <label>URL shortener</label>
+            <input type="text" name="target_url" placeholder="Add URL to be shortened...">
+            <button class="ui blue button" type="submit">Shorten</button>
+        </div>
+    </form>
+
+    {% if key_url %}
+    <div class="ui message">
+        <p>New URL: <a href="{{ key_url }}" target="_blank">{{ key_url }}</a>
+            <button onclick="copyText('{{ key_url }}')">Copy</button>
+        </p>
+        <p>Secret Key: {{ secret_key }}
+            <button onclick="copyText('{{ secret_key }}')">Copy</button>
+        </p>
+        <p>Keep the Secret Key safe to be able to get admin info in future.</p>
+    </div>
+    {% endif %}
+
+    {% if error_message %}
+    <div class="ui negative message">
+        <p>Error: {{ error_message }}</p>
+    </div>
+    {% endif %}
+
+    <br>
+
+    <form class="ui form" action="/admin/" method="get">
+        <div class="field">
+            <label>Get admin info</label>
+            <input type="text" name="secret_key" placeholder="Get admin info using the secret key...">
+            <button class="ui gray button" type="submit">Get</button>
+        </div>
+    </form>
+
+    {% if admin_info %}
+    <div class="ui message">
+        <p>Admin Info:</p>
+        <p>Target URL: <a href="{{ admin_info.target_url }}" target="_blank">{{ admin_info.target_url }}</a>
+            <button onclick="copyText('{{ admin_info.target_url }}')">Copy</button>
+        </p>
+        <p>Shortened URL: <a href="{{ short_url }}" target="_blank">{{ short_url }}</a>
+            <button onclick="copyText('{{ short_url }}')">Copy</button>
+        </p>
+        <p>Clicks: {{ admin_info.clicks }}</p>
+    </div>
+    {% endif %}
+
+    {% if error_message2 %}
+    <div class="ui negative message">
+        <p>Error: {{ error_message2 }}</p>
+    </div>
+    {% endif %}
+
+    <br>
+
+    <form class="ui form" id="delete-form">
+        <div class="field">
+            <label>Delete URL</label>
+            <input type="text" id="deactivate_url" name="deactivate_url" placeholder="Delete your URL using the secret key...">
+            <button class="ui red button" type="button" onclick="deleteUrl()">Delete</button>
+        </div>
+    </form>
+
+    </div>
+
+    <script>
+        function copyText(text_to_copy) {
+            /* Copy text into clipboard */
+            navigator.clipboard.writeText(text_to_copy);
+        }
+
+        function deleteUrl() {
+            const deactivateUrlInput = document.getElementById("deactivate_url");
+            const deactivateUrl = deactivateUrlInput.value;
+
+            fetch(`/admin/?deactivate_url=${deactivateUrl}`, {
+                method: "DELETE"
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error("Failed to delete URL");
+                }
+            })
+            .then(data => {
+                if (data.detail) {
+                    const deletedUrlElement = document.getElementById(deactivateUrl);
+                    if (deletedUrlElement) {
+                        deletedUrlElement.remove();
+                        alert(data.detail);
+                    }
+                } else {
+                    console.error("Unexpected response from the server:", data);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Failed to delete URL2");
+            });
+        }
+    </script>
+
+</body>
+</html>
