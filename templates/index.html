@@ -6,6 +6,7 @@
     <title>URL Shortener</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
 </head>
 <body>
@@ -78,6 +79,14 @@
         </div>
     </form>
 
+    <div id="success-message" style="display: none" class="ui message">
+        <p>{{ message2 }}</p>
+    </div>
+
+    <div id="fail-message" style="display: none" class="ui message">
+        <p>{{ message3 }}</p>
+    </div>
+
     </div>
 
     <script>
@@ -93,27 +102,28 @@
             fetch(`/admin/?deactivate_url=${deactivateUrl}`, {
                 method: "DELETE"
             })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    throw new Error("Failed to delete URL");
-                }
-            })
+            .then(response => response.json()) // Parse the JSON response
             .then(data => {
-                if (data.detail) {
+                if (data.url_deleted_successfully) {
                     const deletedUrlElement = document.getElementById(deactivateUrl);
                     if (deletedUrlElement) {
                         deletedUrlElement.remove();
-                        alert(data.detail);
+                    }
+                    const successMessage = document.getElementById("success-message");
+                    if (successMessage) {
+                        successMessage.style.display = "block"; // Display the success message
+                        successMessage.innerHTML = `<p>${data.message2}</p>`; // Set the success message content
                     }
                 } else {
-                    console.error("Unexpected response from the server:", data);
+                    const failMessage = document.getElementById("fail-message");
+                    failMessage.style.display = "block"; // Display the message
+                    failMessage.innerHTML = `<p>${data.message3}</p>`;
                 }
             })
             .catch(error => {
-                console.error(error);
-                alert("Failed to delete URL2");
+                const failMessage = document.getElementById("fail-message");
+                failMessage.style.display = "block"; // Display the message
+                failMessage.innerHTML = `<p>Failed to delete URL</p>`;
             });
         }
     </script>

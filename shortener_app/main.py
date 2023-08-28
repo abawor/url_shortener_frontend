@@ -1,7 +1,7 @@
 import validators
 
 from fastapi import FastAPI, Depends, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.datastructures import URL
@@ -103,15 +103,24 @@ def get_url_info(
         return index(request, error_message2=error_message2)
 
 
-@app.delete("/admin/", response_class=HTMLResponse)
+
+@app.delete("/admin/")
 def delete_url(
-        request: Request,
         deactivate_url: str = None,
         db: Session = Depends(get_db)
 ):
     db_url = crud.deactivate_db_url_by_secret_key(db, deactivate_url=deactivate_url)
     if db_url:
-        message = f"Successfully deleted shortened URL for '{db_url.target_url}'"
-        return {"detail": message}
+        message2 = f"Successfully deleted shortened URL for '{db_url.target_url}'"
+        response_data = {
+            "url_deleted_successfully": True,
+            "message2": message2
+        }
+        return JSONResponse(content=response_data)
     else:
-        raise_not_found(request)
+        message3 = f"Failed to delete shortened URL for '{deactivate_url}'"
+        response_data = {
+            "url_deleted_successfully": False,
+            "message3": message3
+        }
+        return JSONResponse(content=response_data)
