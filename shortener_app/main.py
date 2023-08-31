@@ -103,7 +103,6 @@ def get_url_info(
         return index(request, error_message2=error_message2)
 
 
-
 @app.delete("/admin/")
 def delete_url(
         deactivate_url: str = None,
